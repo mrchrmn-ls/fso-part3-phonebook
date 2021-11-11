@@ -1,7 +1,11 @@
 const express = require("express");
+const morgan = require("morgan");
 const app = express();
 
 app.use(express.json());
+
+morgan.token("req-body", (req, _) => {return JSON.stringify(req.body)});
+app.use(morgan(":method :url :status :res[content-length] - :response-time ms :req-body"));
 
 let persons = [
   { 
@@ -63,7 +67,7 @@ app.get("/api/persons/:id", (req, res) => {
 });
 
 
-app.post("/spo/persons", (req, res) => {
+app.post("/api/persons", (req, res) => {
   if (!req.body.name || !req.body.number) {
     return res.status(400).json({
       error: "Name and number must be filled in."
@@ -78,7 +82,7 @@ app.post("/spo/persons", (req, res) => {
   }
 
   const person = {
-    id: generateId(),
+    id: generateId(persons),
     name: req.body.name.trim(),
     number: req.body.number
   }
