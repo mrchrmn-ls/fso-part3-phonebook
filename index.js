@@ -18,13 +18,21 @@ morgan.token("req-body", (req, _) => {return JSON.stringify(req.body)});
 app.use(morgan(":method :url :status :res[content-length] - :response-time ms :req-body"));
 
 
-function generateId(persons) {
-  let newId = Math.ceil(Math.random() * 9999);
-  if (persons.find(person => person.id === newId)) {
-    return generateId(persons);
-  } else {
-    return newId;
+function unknownEndpoint(_, res) {
+  res.status(404).send({
+    error: "Unknown endpoint"
+  });
+}
+
+
+function errorHandler(err, _, res, next) {
+  console.log(err.message);
+
+  if (err.name === "CastError") {
+    return res.status(400).send({ error: "malformatted id" });
   }
+
+  next(err);
 }
 
 
@@ -43,24 +51,31 @@ app.get("/api/persons", (_, res) => {
 });
 
 
-app.get("/api/persons/:id", (req, res) => {
-  Person.findById(req.params.id).then(note => res.json(note));
+app.get("/api/persons/:id", (req, res, next) => {
+  Person.findById(req.params.id).then(person => {
+    if (person) {
+      res.json(person);
+    } else {
+      res.status(404).end();
+    }
+  })
+  .catch(error => next(error));
 });
 
 
+app.delete("/api/persons/:id", (req, res, next) => {
+  Person.findByIdAndRemove(req.params.id)
+    .then(() => res.status(204).end())
+    .catch(error => next(error));
+});
+  
+  
 app.post("/api/persons", (req, res) => {
   if (!req.body.name || !req.body.number) {
     return res.status(400).json({
       error: "Name and number must be filled in."
     });
   }
-
-  // if (Person.find()person => person.name.toLowerCase() ===
-  //     req.body.name.trim().toLowerCase())) {
-  //   return res.status(400).json({
-  //     error: `There is already a person called ${req.body.name} in the phonebook.`
-  //   })
-  // }
 
   const person = new Person ({
     name: req.body.name.trim(),
@@ -71,12 +86,20 @@ app.post("/api/persons", (req, res) => {
 });
 
 
-app.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  persons = persons.filter(person => person.id !== id);
+app.put("/api/persons/:id", (req, res, next) => {
+  const person = {
+    name: req.body.name,
+    number: req.body.number
+  }
 
-  res.status(204).end();
-})
+  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+    .then(updatedPerson => res.json(updatedPerson))
+    .catch(error => next(error));
+});
+
+
+app.use(unknownEndpoint);
+app.use(errorHandler);
 
 
 const PORT = process.env.PORT;
