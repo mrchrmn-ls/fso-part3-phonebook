@@ -6,7 +6,6 @@ const cors = require("cors");
 const app = express();
 
 const Person = require("./model/person");
-const note = require("../fso-part3-notes/models/note");
 
 
 app.use(express.json());
