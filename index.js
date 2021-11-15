@@ -28,7 +28,12 @@ function errorHandler(err, _, res, next) {
   console.log(err.message);
 
   if (err.name === "CastError") {
-    return res.status(400).send({ error: "malformatted id" });
+    res.status(400).send({ error: "malformatted id" });
+    return null;
+  }
+
+  if (err.name === "ValidationError") {
+    res.status(400).json({ error: err.message });
   }
 
   next(err);
@@ -69,19 +74,16 @@ app.delete("/api/persons/:id", (req, res, next) => {
 });
   
   
-app.post("/api/persons", (req, res) => {
-  if (!req.body.name || !req.body.number) {
-    return res.status(400).json({
-      error: "Name and number must be filled in."
-    });
-  }
-
+app.post("/api/persons", (req, res, next) => {
   const person = new Person ({
     name: req.body.name.trim(),
     number: req.body.number
   });
 
-  person.save().then(savedPerson => res.json(savedPerson));
+  person.save()
+    .then(savedPerson => savedPerson.toJSON())
+    .then(formattedPerson => res.json(formattedPerson))
+    .catch(error => next(error));
 });
 
 
@@ -91,7 +93,7 @@ app.put("/api/persons/:id", (req, res, next) => {
     number: req.body.number
   }
 
-  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+  Person.findByIdAndUpdate(req.params.id, person, { new: true, runValidators: true })
     .then(updatedPerson => res.json(updatedPerson))
     .catch(error => next(error));
 });

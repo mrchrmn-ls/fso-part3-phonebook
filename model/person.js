@@ -1,6 +1,8 @@
 require("dotenv").config();
 
 const mongoose = require("mongoose");
+const uniqueValidator = require("mongoose-unique-validator");
+
 const mongodb_url = process.env.MONGODB_URL;
 
 mongoose.connect(mongodb_url)
@@ -12,9 +14,21 @@ mongoose.connect(mongodb_url)
   });
 
 const personSchema = new mongoose.Schema({
-  name: String,
-  number: String
+  name: {
+    type: String,
+    minLength: 3,
+    required: true,
+    unique: true,
+    uniqueCaseInsensitive: true
+  },
+  number: {
+    type: String,
+    minLength: 8,
+    required: true
+  }
 });
+
+personSchema.plugin(uniqueValidator);
 
 personSchema.set("toJSON", {
   transform: (_, returnedObject) => {
