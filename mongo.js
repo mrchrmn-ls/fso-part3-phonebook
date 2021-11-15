@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 if (process.argv.length < 3) {
-  console.log("You neet to at least provide a password.")
+  console.log("You neet to at least provide a password.");
   console.log("Usage: node mongo.js <PASSWORD> [NAME] [NUMBER]");
   process.exit(1);
 }
@@ -10,7 +10,7 @@ const password = process.argv[2];
 const name = process.argv[3];
 const number = process.argv[4];
 
-const url = `mongodb+srv://fullstack:${password}@fso1.lm0iv.mongodb.net/phonebook-app?retryWrites=true&w=majority`
+const url = `mongodb+srv://fullstack:${password}@fso1.lm0iv.mongodb.net/phonebook-app?retryWrites=true&w=majority`;
 
 mongoose.connect(url);
 

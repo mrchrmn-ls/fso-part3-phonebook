@@ -13,7 +13,7 @@ app.use(express.static("build"));
 
 app.use(cors());
 
-morgan.token("req-body", (req, _) => {return JSON.stringify(req.body)});
+morgan.token("req-body", req => JSON.stringify(req.body));
 app.use(morgan(":method :url :status :res[content-length] - :response-time ms :req-body"));
 
 
@@ -72,8 +72,8 @@ app.delete("/api/persons/:id", (req, res, next) => {
     .then(() => res.status(204).end())
     .catch(error => next(error));
 });
-  
-  
+
+
 app.post("/api/persons", (req, res, next) => {
   const person = new Person ({
     name: req.body.name.trim(),
@@ -91,7 +91,7 @@ app.put("/api/persons/:id", (req, res, next) => {
   const person = {
     name: req.body.name,
     number: req.body.number
-  }
+  };
 
   Person.findByIdAndUpdate(req.params.id, person, { new: true, runValidators: true })
     .then(updatedPerson => res.json(updatedPerson))
@@ -104,6 +104,6 @@ app.use(errorHandler);
 
 
 const PORT = process.env.PORT;
-app.listen(PORT, ()=> {
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
